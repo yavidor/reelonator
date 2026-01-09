@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+
+REEL_ID="${1}"
+
+TODAY=$(date +%d-%m-%y)
+
+PROJECT_DIR='/home/yavidor/nehoran/reelonator'
+
+source "${PROJECT_DIR}/venv/bin/activate"
+
+echo $TODAY
+
+mkdir -p "${PROJECT_DIR}/${TODAY}" && cd "${PROJECT_DIR}/${TODAY}" 
+
+python3 "${PROJECT_DIR}/instagramScraper.py" "${REEL_ID}"
+
+jq '.extensions.all_video_dash_prefetch_representations[0].representations[-1].base_url' -r "${REEL_ID}_response.json" | xargs -I {} curl {} > audio.mp4
+
+jq '.extensions.all_video_dash_prefetch_representations[0].representations[0].base_url' -r "${REEL_ID}_response.json" | xargs -I {} curl {} > video.mp4
+
+mkdir -p frames
+
+python3 "${PROJECT_DIR}/extractFrames.py" "${PROJECT_DIR}/${TODAY}/video.mp4" "${PROJECT_DIR}/${TODAY}"
+
+ffmpeg -i audio.mp4 -lavfi showspectrumpic=s=800x400:mode=separate spectogram.png
