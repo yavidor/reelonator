@@ -15,12 +15,27 @@ mkdir -p "${PROJECT_DIR}/${TODAY}" && cd "${PROJECT_DIR}/${TODAY}"
 
 python3 "${PROJECT_DIR}/instagramScraper.py" "${REEL_ID}"
 
-jq '.extensions.all_video_dash_prefetch_representations[0].representations[-1].base_url' -r "${REEL_ID}_response.json" | xargs -I {} curl {} > audio.mp4
+# Download audio, video description and thumbnail
 
-jq '.extensions.all_video_dash_prefetch_representations[0].representations[0].base_url' -r "${REEL_ID}_response.json" | xargs -I {} curl {} > video.mp4
+METADATA_FILE="${REEL_ID}_response.json" 
 
+jq '.extensions.all_video_dash_prefetch_representations[0].representations[-1].base_url' -r $METADATA_FILE | xargs -I {} curl {} > audio.mp4
+
+jq '.extensions.all_video_dash_prefetch_representations[0].representations[-2].base_url' -r $METADATA_FILE | xargs -I {} curl {} > video.mp4
+
+jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].image_versions2.candidates[0].url' -r $METADATA_FILE | xargs -I {} curl {} > thumnail.jpg
+
+jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].caption.text' -r $METADATA_FILE > caption.txt
+
+
+# Extract Frames
 mkdir -p frames
 
 python3 "${PROJECT_DIR}/extractFrames.py" "${PROJECT_DIR}/${TODAY}/video.mp4" "${PROJECT_DIR}/${TODAY}"
 
+# Create spectogram
 ffmpeg -i audio.mp4 -lavfi showspectrumpic=s=800x400:mode=separate spectogram.png
+
+# Combine audio and video
+ffmpeg -i video.mp4 -i audio.mp4 -c copy -map 0:v:0 -map 1:a:0 combined.mp4
+mv combined.mp4 video.mp4
