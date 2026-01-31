@@ -3,17 +3,26 @@
 
 REEL_ID="${1}"
 
-TODAY=$(date +%d-%m-%y)
+
+if [ "$#" -lt 2 ]; then
+
+    OUTPUT_DIR="outputs/$(date +%d-%m-%y)"
+
+else
+    OUTPUT_DIR="outputs/${2}"
+fi
+
 
 PROJECT_DIR='/home/yavidor/nehoran/reelonator'
 
 source "${PROJECT_DIR}/venv/bin/activate"
 
-echo $TODAY
+echo $OUTPUT_DIR
 
-mkdir -p "${PROJECT_DIR}/${TODAY}" && cd "${PROJECT_DIR}/${TODAY}" 
+mkdir -p "${PROJECT_DIR}/${OUTPUT_DIR}" && cd "${PROJECT_DIR}/${OUTPUT_DIR}" 
 
 python3 "${PROJECT_DIR}/instagramScraper.py" "${REEL_ID}"
+
 
 # Download audio, video description and thumbnail
 
@@ -31,7 +40,7 @@ jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].caption.text' -r $MET
 # Extract Frames
 mkdir -p frames
 
-python3 "${PROJECT_DIR}/extractFrames.py" "${PROJECT_DIR}/${TODAY}/video.mp4" "${PROJECT_DIR}/${TODAY}"
+python3 "${PROJECT_DIR}/extractFrames.py" "${PROJECT_DIR}/${OUTPUT_DIR}/video.mp4" "${PROJECT_DIR}/${OUTPUT_DIR}"
 
 # Create spectogram
 ffmpeg -i audio.mp4 -lavfi showspectrumpic=s=800x400:mode=separate spectogram.png
