@@ -13,9 +13,19 @@ else
 fi
 
 
-PROJECT_DIR='/home/yavidor/nehoran/reelonator'
+if [ -e "${PWD}/instagramScraper.py" ]; then
+    PROJECT_DIR="${PWD}"
+else
+    PROJECT_DIR='/home/yavidor/nehoran/reelonator'
+fi
 
-source "${PROJECT_DIR}/venv/bin/activate"
+if command -v pyenv virtualenvs &> /dev/null; then
+    HAS_PYENV=1
+fi
+
+if [ -z HAS_PYENV ]; then
+    source "${PROJECT_DIR}/venv/bin/activate"
+fi
 
 echo $OUTPUT_DIR
 
