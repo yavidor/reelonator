@@ -1,3 +1,7 @@
+"""
+Written by someone on the internet
+Changed by yavidor
+"""
 import requests
 import json
 import sys
