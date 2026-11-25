@@ -1,51 +1,46 @@
 #!/usr/bin/env bash
 
-
 REEL_ID="${1}"
-
 
 if [ "$#" -lt 2 ]; then
 
-    OUTPUT_DIR="outputs/$(date +%d-%m-%y)"
+  OUTPUT_DIR="outputs/$(date +%d-%m-%y)"
 
 else
-    OUTPUT_DIR="outputs/${2}"
+  OUTPUT_DIR="outputs/${2}"
 fi
-
 
 if [ -e "${PWD}/instagramScraper.py" ]; then
-    PROJECT_DIR="${PWD}"
+  PROJECT_DIR="${PWD}"
 else
-    PROJECT_DIR='/home/yavidor/nehoran/reelonator'
+  PROJECT_DIR='/home/yavidor/nehoran/reelonator'
 fi
 
-if command -v pyenv virtualenvs &> /dev/null; then
-    HAS_PYENV=1
-fi
+# if command -v pyenv virtualenvs &> /dev/null; then
+# HAS_PYENV=1
+# fi
 
-if [ -z HAS_PYENV ]; then
-    source "${PROJECT_DIR}/venv/bin/activate"
-fi
+# if [ -z HAS_PYENV ]; then
+source "${PROJECT_DIR}/venv/bin/activate"
+# fi
 
 echo $OUTPUT_DIR
 
-mkdir -p "${PROJECT_DIR}/${OUTPUT_DIR}" && cd "${PROJECT_DIR}/${OUTPUT_DIR}" 
+mkdir -p "${PROJECT_DIR}/${OUTPUT_DIR}" && cd "${PROJECT_DIR}/${OUTPUT_DIR}"
 
 python3 "${PROJECT_DIR}/instagramScraper.py" "${REEL_ID}"
 
-
 # Download audio, video description and thumbnail
 
-METADATA_FILE="${REEL_ID}_response.json" 
+METADATA_FILE="${REEL_ID}_response.json"
 
-jq '.extensions.all_video_dash_prefetch_representations[0].representations[-1].base_url' -r $METADATA_FILE | xargs -I {} curl {} > audio.mp4
+jq '.extensions.all_video_dash_prefetch_representations[0].representations[-1].base_url' -r $METADATA_FILE | xargs -I {} curl {} >audio.mp4
 
-jq '.extensions.all_video_dash_prefetch_representations[0].representations[-2].base_url' -r $METADATA_FILE | xargs -I {} curl {} > video.mp4
+jq '.extensions.all_video_dash_prefetch_representations[0].representations[-2].base_url' -r $METADATA_FILE | xargs -I {} curl {} >video.mp4
 
-jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].image_versions2.candidates[0].url' -r $METADATA_FILE | xargs -I {} curl {} > thumnail.jpg
+jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].image_versions2.candidates[0].url' -r $METADATA_FILE | xargs -I {} curl {} >thumnail.jpg
 
-jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].caption.text' -r $METADATA_FILE > caption.txt
-
+jq '.data.xdt_api__v1__media__shortcode__web_info.items[0].caption.text' -r $METADATA_FILE >caption.txt
 
 # Extract Frames
 mkdir -p frames
